@@ -20,3 +20,15 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Disqus embed.js parseColor() only supports hex/rgb/rgba/named colors, not Tailwind v4 oklch() */
+#disqus_thread {
+  color: #0f172a;
+  background-color: #ffffff;
+  color-scheme: light;
+}
+
+#disqus_thread a {
+  color: #0f172a;
+}
+

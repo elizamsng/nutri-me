@@ -19,6 +19,7 @@ import {
 import { ActivityMealLog } from './components/ActivityMealLog';
 import { CalorieDonutInfographic } from './components/CalorieDonutInfographic';
 import { CustomEntryModal } from './components/CustomEntryModal';
+import { DisqusDiscussion } from './components/DisqusDiscussion';
 import { ExercisePlanner } from './components/ExercisePlanner';
 import { HelpModal } from './components/HelpModal';
 import { MealFinder } from './components/MealFinder';
@@ -479,6 +480,8 @@ export default function App() {
             onOpenCustomModal={(tab) => setCustomModalState({ open: true, tab })}
           />
         )}
+
+        <DisqusDiscussion />
       </main>
 
       {/* Modals */}
