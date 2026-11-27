@@ -39,7 +39,7 @@ export async function fetchWgerMeta(): Promise<{
   const data = await requestJson<{
     categories?: WgerCategoryOption[];
     equipment?: WgerEquipmentOption[];
-  }>('/api/wger/meta');
+  }>('/api/nutri?action=wger-meta');
   return {
     categories: Array.isArray(data?.categories) ? data.categories : [],
     equipment: Array.isArray(data?.equipment) ? data.equipment : [],
@@ -52,7 +52,7 @@ export async function fetchWgerExercises(params: {
   search?: string;
   limit?: number;
 }): Promise<{ count: number; exercises: ExerciseItem[] }> {
-  const qs = new URLSearchParams();
+  const qs = new URLSearchParams({ action: 'wger-exercises' });
   if (params.categoryIds && params.categoryIds.length > 0) {
     qs.set('category', params.categoryIds.join(','));
   }
@@ -62,7 +62,7 @@ export async function fetchWgerExercises(params: {
   if (params.search?.trim()) qs.set('search', params.search.trim());
   qs.set('limit', String(params.limit || 45));
   const data = await requestJson<{ count?: number; exercises?: ExerciseItem[] }>(
-    `/api/wger/exercises?${qs.toString()}`
+    `/api/nutri?${qs.toString()}`
   );
   const exercises = Array.isArray(data?.exercises) ? data.exercises : [];
   return {
@@ -72,7 +72,9 @@ export async function fetchWgerExercises(params: {
 }
 
 export async function fetchMealCategories(): Promise<MealCategoryInfo[]> {
-  const data = await requestJson<{ categories?: MealCategoryInfo[] }>('/api/meals/categories');
+  const data = await requestJson<{ categories?: MealCategoryInfo[] }>(
+    '/api/nutri?action=meals-categories'
+  );
   return Array.isArray(data?.categories) ? data.categories : [];
 }
 
@@ -80,11 +82,11 @@ export async function fetchMealsByFilter(opts: {
   category?: string;
   ingredient?: string;
 }): Promise<MealSummary[]> {
-  const qs = new URLSearchParams();
+  const qs = new URLSearchParams({ action: 'meals-filter' });
   if (opts.category) qs.set('c', opts.category);
   else if (opts.ingredient) qs.set('i', opts.ingredient);
   const data = await requestJson<{ meals?: Record<string, unknown>[] }>(
-    `/api/meals/filter?${qs.toString()}`
+    `/api/nutri?${qs.toString()}`
   );
   const catLabel = opts.category || 'Chicken';
   const meals = Array.isArray(data?.meals) ? data.meals : [];
@@ -95,11 +97,11 @@ export async function fetchMealsMultiFilter(opts: {
   categories: string[];
   ingredients: string[];
 }): Promise<MealSummary[]> {
-  const qs = new URLSearchParams();
+  const qs = new URLSearchParams({ action: 'meals-multi-filter' });
   if (opts.categories.length > 0) qs.set('categories', opts.categories.join(','));
   if (opts.ingredients.length > 0) qs.set('ingredients', opts.ingredients.join(','));
   const data = await requestJson<{ meals?: Record<string, unknown>[] }>(
-    `/api/meals/multi-filter?${qs.toString()}`
+    `/api/nutri?${qs.toString()}`
   );
   const fallbackCat = opts.categories[0] || 'Chicken';
   const meals = Array.isArray(data?.meals) ? data.meals : [];
@@ -108,16 +110,18 @@ export async function fetchMealsMultiFilter(opts: {
 
 export async function searchMealsByName(query: string): Promise<MealSummary[]> {
   if (!query.trim()) return [];
+  const qs = new URLSearchParams({ action: 'meals-search', s: query.trim() });
   const data = await requestJson<{ meals?: Record<string, unknown>[] }>(
-    `/api/meals/search?s=${encodeURIComponent(query.trim())}`
+    `/api/nutri?${qs.toString()}`
   );
   const meals = Array.isArray(data?.meals) ? data.meals : [];
   return meals.map((m) => hydrateMealSummary(m));
 }
 
 export async function fetchMealDetail(idMeal: string): Promise<MealDetail> {
+  const qs = new URLSearchParams({ action: 'meals-lookup', id: idMeal });
   const data = await requestJson<{ meal?: Record<string, unknown> }>(
-    `/api/meals/lookup/${encodeURIComponent(idMeal)}`
+    `/api/nutri?${qs.toString()}`
   );
   if (!data?.meal) {
     throw new Error('Recipe details were unavailable');
@@ -126,8 +130,9 @@ export async function fetchMealDetail(idMeal: string): Promise<MealDetail> {
 }
 
 export async function fetchFoodByBarcode(barcode: string): Promise<FoodProduct> {
+  const qs = new URLSearchParams({ action: 'food-product', barcode: barcode.trim() });
   const data = await requestJson<{ product?: FoodProduct }>(
-    `/api/food/product/${encodeURIComponent(barcode.trim())}`
+    `/api/nutri?${qs.toString()}`
   );
   if (!data?.product) {
     const err = new Error(`Product barcode ${barcode} was not found in Open Food Facts`) as Error & {
@@ -141,8 +146,9 @@ export async function fetchFoodByBarcode(barcode: string): Promise<FoodProduct> 
 
 export async function searchFoodProducts(query: string): Promise<FoodProduct[]> {
   if (!query.trim()) return [];
+  const qs = new URLSearchParams({ action: 'food-search', q: query.trim() });
   const data = await requestJson<{ products?: FoodProduct[] }>(
-    `/api/food/search?q=${encodeURIComponent(query.trim())}`
+    `/api/nutri?${qs.toString()}`
   );
   return Array.isArray(data?.products) ? data.products : [];
 }
