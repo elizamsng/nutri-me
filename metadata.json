@@ -1,0 +1,6 @@
+{
+  "name": "VitalTrack",
+  "description": "Food, recipe, and exercise health planner with live calorie targets, Wger workouts, TheMealDB recipes, Open Food Facts nutrition lookup, and daily activity logging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
