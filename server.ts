@@ -1,6 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import healthHandler from './api/health.ts';
+import nutriHandler from './api/nutri.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -122,58 +124,19 @@ async function createServer() {
   const app = express();
   app.use(express.json());
 
-  // Health & API Connectivity Check
-  app.get('/api/health', async (req, res) => {
-    const checkApis = req.query.checkApis === 'true';
-    if (!checkApis) {
-      res.json({ ok: true, timestamp: new Date().toISOString() });
-      return;
-    }
+  // Root /api/health and /api/nutri handlers (shared with Vercel /api/*.ts functions)
+  app.get('/api/health', (req, res) => {
+    void healthHandler(
+      req as unknown as Parameters<typeof healthHandler>[0],
+      res as unknown as Parameters<typeof healthHandler>[1]
+    );
+  });
 
-    const checks = await Promise.all([
-      fetchJsonWithTimeout(`${MEALDB_URL}/filter.php?i=chicken_breast`)
-        .then((data) => ({
-          service: 'TheMealDB',
-          connected: Array.isArray(data?.meals) && data.meals.length > 0,
-          count: Array.isArray(data?.meals) ? data.meals.length : 0,
-        }))
-        .catch((err: Error) => ({
-          service: 'TheMealDB',
-          connected: false,
-          error: err.message,
-        })),
-      fetchJsonWithTimeout('https://wger.de/api/v2/exerciseinfo/?language=2&limit=5')
-        .then((data) => ({
-          service: 'Wger Exercise',
-          connected: Array.isArray(data?.results) && data.results.length > 0,
-          count: Array.isArray(data?.results) ? data.results.length : 0,
-        }))
-        .catch((err: Error) => ({
-          service: 'Wger Exercise',
-          connected: false,
-          error: err.message,
-        })),
-      fetchJsonWithTimeout(
-        'https://world.openfoodfacts.org/api/v2/product/3017624010701.json?fields=product_name,brands,nutriscore_grade',
-        { 'User-Agent': OFF_USER_AGENT }
-      )
-        .then((data) => ({
-          service: 'Open Food Facts',
-          connected: data?.status === 1 && Boolean(data?.product?.product_name),
-          sample: data?.product?.product_name ?? '',
-        }))
-        .catch((err: Error) => ({
-          service: 'Open Food Facts',
-          connected: false,
-          error: err.message,
-        })),
-    ]);
-
-    res.json({
-      ok: checks.every((c) => c.connected),
-      apis: checks,
-      timestamp: new Date().toISOString(),
-    });
+  app.get('/api/nutri', (req, res) => {
+    void nutriHandler(
+      req as unknown as Parameters<typeof nutriHandler>[0],
+      res as unknown as Parameters<typeof nutriHandler>[1]
+    );
   });
 
   // --- Wger Exercise API Proxy ---
